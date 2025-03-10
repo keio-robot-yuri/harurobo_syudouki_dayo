@@ -33,7 +33,7 @@ extern TIM_HandleTypeDef htim8; // for encoder
 UartLink uart_link(&huart2, 0);
 Publisher<UartLink, float, float, float, float, float> periodic_pub(uart_link, messages::transmission::PERIODIC);
 // //データの送信, publisherの設定
-//UartLinkPublisher<bool> pub(uart_link, 1);
+//UartLinkPublisher<float> pub(uart_link, 1);
 //データの受信, subscriberの設定
 UartLinkSubscriber<bool> sub_kokuban(uart_link, 1);
 UartLinkSubscriber<bool> sub_ball(uart_link, 2);
@@ -43,7 +43,7 @@ UartLinkSubscriber<bool> sub_LED(uart_link, 3);
 BNO055_UART imu(&huart3, EUL_AXIS::EUL_X);
 
 // ---- LED ----
-LED led1(GPIOA, GPIO_PIN_10); //PA_10
+LED led1(GPIOA, GPIO_PIN_5); //PA_5
 
 //----ServoMotor----
 //NHK2025基盤
@@ -55,7 +55,7 @@ ServoMotor servoMotor1(&htim2, TIM_CHANNEL_1, GPIOB, GPIO_PIN_15); //PA_0(TIM2_C
 
 //----ElecttomagneticValve----
 //NHK2025基盤
-ElectromagneticValve electromagneticValve1(GPIOC, GPIO_PIN_8); //J15(PB_12)
+ElectromagneticValve electromagneticValve1(GPIOB, GPIO_PIN_12); //J15(PB_12)
 // //SpringRObocon2025基盤
 // ElectromagneticValve electromagneticValve1(GPIOA, GPIO_PIN_11); //J7(PA_11)
 // //----ElecttomagneticValve(LED付き)----
@@ -104,8 +104,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 // サブスクライバのコールバック関数
 void servoCallback_kokuban(bool servo_state) {
     // ここにコールバック関数の処理を書く
-    if (servo_state == true) 
-    {
+    if (servo_state == true) {
         //(黒板)
         // 電磁弁を開く
         electromagneticValve1.open();
@@ -135,6 +134,13 @@ void servoCallback_kokuban(bool servo_state) {
             servoMotor1.SetAngle(angle);
             HAL_Delay(10);
         }
+        HAL_Delay(10000);
+        // 下げる
+        // 30度から90度まで3度ずつ増やす
+        for(int angle = 30; angle <= 90; angle += 3){
+            servoMotor1.SetAngle(angle);
+            HAL_Delay(10);
+        }
     }
 }
 
@@ -145,12 +151,12 @@ void servoCallback_ball(bool servo_state) {
         //(ボール)
         // 電磁弁を開く
         electromagneticValve1.open();
-        // 下げる
-        // 30度から90度まで3度ずつ増やす
-        for (int angle = 30; angle <= 90; angle += 3){
-            servoMotor1.SetAngle(angle);
-            HAL_Delay(15);
-        }
+        // // 下げる
+        // // 30度から90度まで3度ずつ増やす
+        // for (int angle = 30; angle <= 90; angle += 3){
+        //     servoMotor1.SetAngle(angle);
+        //     HAL_Delay(15);
+        // }
         HAL_Delay(300);
         // ものをつかむ
         electromagneticValve1.close();
@@ -161,28 +167,26 @@ void servoCallback_ball(bool servo_state) {
             servoMotor1.SetAngle(angle);
             HAL_Delay(15);
         }
+        // 
         HAL_Delay(400);
         // ものを落とす
         electromagneticValve1.open();
         HAL_Delay(500);
         //　もとの位置に戻る
         // 0度から90度まで3度ずつ増やす
-        for(int angle = 0; angle <= 30; angle += 3){
+        for(int angle = 0; angle <= 90; angle += 3){
             servoMotor1.SetAngle(angle);
             HAL_Delay(10);
         }
     }
 }    
 
-void ledCallback(bool LED_state) {
+void servoCallback_LED(bool LED_state) {
     // ここにコールバック関数の処理を書く
     if (LED_state == true)
     {
         led1.on();
-    }
-    else
-    {
-        led1.off();
+
     }
 }
 
@@ -201,16 +205,15 @@ void setup() {
     // encoder3.start();
     // encoder4.start();
 
-    // 電磁弁
-    // electromagneticValve1.close();
-
     //サーボモータ
     servoMotor1.start();
 
+    //電磁弁
+    electromagneticValve1.close();
+    
     // サブスクライバのコールバック関数を設定
     sub_kokuban.set_callback(servoCallback_kokuban);
     sub_ball.set_callback(servoCallback_ball);
-    sub_LED.set_callback(ledCallback);
 
     led1.off();
 }
