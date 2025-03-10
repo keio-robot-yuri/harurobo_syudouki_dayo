@@ -43,7 +43,7 @@ UartLinkSubscriber<bool> sub_LED(uart_link, 3);
 BNO055_UART imu(&huart3, EUL_AXIS::EUL_X);
 
 // ---- LED ----
-LED led1(GPIOA, GPIO_PIN_5); //PA_5
+LED led1(GPIOA, GPIO_PIN_10); //PA_5
 
 //----ServoMotor----
 //NHK2025基盤
@@ -55,7 +55,7 @@ ServoMotor servoMotor1(&htim2, TIM_CHANNEL_1, GPIOB, GPIO_PIN_15); //PA_0(TIM2_C
 
 //----ElecttomagneticValve----
 //NHK2025基盤
-ElectromagneticValve electromagneticValve1(GPIOB, GPIO_PIN_12); //J15(PB_12)
+ElectromagneticValve electromagneticValve1(GPIOC, GPIO_PIN_8); //J15(PB_12)
 // //SpringRObocon2025基盤
 // ElectromagneticValve electromagneticValve1(GPIOA, GPIO_PIN_11); //J7(PA_11)
 // //----ElecttomagneticValve(LED付き)----
@@ -209,11 +209,12 @@ void setup() {
     servoMotor1.start();
 
     //電磁弁
-    electromagneticValve1.close();
+    //electromagneticValve1.close();
     
     // サブスクライバのコールバック関数を設定
     sub_kokuban.set_callback(servoCallback_kokuban);
     sub_ball.set_callback(servoCallback_ball);
+    sub_LED.set_callback(servoCallback_LED);
 
     led1.off();
 }
