@@ -38,6 +38,7 @@ Publisher<UartLink, float, float, float, float, float> periodic_pub(uart_link, m
 UartLinkSubscriber<bool> sub_kokuban(uart_link, 1);
 UartLinkSubscriber<bool> sub_ball(uart_link, 2);
 UartLinkSubscriber<bool> sub_LED(uart_link, 3);
+UartLinkSubscriber<int> sub_TapeLED(uart_link, 4);
 
 // ---- IMU ----
 BNO055_UART imu(&huart3, EUL_AXIS::EUL_X);
@@ -181,12 +182,22 @@ void servoCallback_ball(bool servo_state) {
     }
 }    
 
-void servoCallback_LED(bool LED_state) {
+void chikaCallback_LED(bool LED_state) {
     // ここにコールバック関数の処理を書く
     if (LED_state == true)
     {
         led1.on();
 
+    }
+}
+
+void chikaCallback_TapeLED(int TapeLED_state) {
+    // ここにコールバック関数の処理を書く
+    if (TapeLED_state == 1)
+    {
+    }
+    else if (TapeLED_state == 0)
+    {
     }
 }
 
@@ -214,7 +225,8 @@ void setup() {
     // サブスクライバのコールバック関数を設定
     sub_kokuban.set_callback(servoCallback_kokuban);
     sub_ball.set_callback(servoCallback_ball);
-    sub_LED.set_callback(servoCallback_LED);
+    sub_LED.set_callback(chikaCallback_LED);
+    sub_TapeLED.set_callback(chikaCallback_TapeLED);
 
     led1.off();
 }
